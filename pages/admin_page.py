@@ -29,7 +29,13 @@ class AdminPage(BasePage):
         self.password_field = (By.XPATH, "(//input[@type='password'])[1]")
         self.confirm_password_field = (By.XPATH, "(//input[@type='password'])[2]")
         self.save_button = (By.XPATH, "//button[@type='submit']")
-
+    
+    
+        # --- Job Menu Section Locators ---
+        self.job_menu = (By.XPATH, "//span[text()='Job']")
+        self.primary_input_field = (By.XPATH, "(//input[@class='oxd-input oxd-input--active'])[2]")
+        self.description_textarea = (By.XPATH, "//textarea[@placeholder='Type description here']")
+        
     def navigate_to_admin_module(self):
         self.click(self.admin_menu)  
 
@@ -65,3 +71,26 @@ class AdminPage(BasePage):
     def get_search_results(self):
         element = self.find_visible(self.records_found_text)
         return element.text
+    
+    # ---Dynamic Methods for Job Menu and Form Filling---
+    
+    def open_job_dropdown_option(self, option_name):
+        """Job मेनु क्लिक गरेर त्यसभित्रको कुनै पनि अप्सन खोल्ने डायनामिक मेथड"""
+        self.click(self.job_menu)
+        time.sleep(1)
+        dynamic_option_xpath = (By.XPATH, f"//ul[@class='oxd-dropdown-menu']//a[text()='{option_name}']")
+        self.click(dynamic_option_xpath)
+        time.sleep(3)
+
+    def fill_and_save_standard_form(self, name_value, description_value=None):
+        """Add बटन थिचेर नाम र डिस्क्रिप्सन भरी सेभ गर्ने साझा मेथड"""
+        self.click(self.add_button)
+        time.sleep(2)
+        
+        self.type(self.primary_input_field, name_value)
+        
+        if description_value:
+            self.type(self.description_textarea, description_value)
+            
+        self.click(self.save_button)
+        time.sleep(4)
