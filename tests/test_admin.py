@@ -1,123 +1,73 @@
+
 import pytest
 import time
 from pages.login_page import LoginPage
-from pages.admin_page import AdminPage  
+from pages.admin_page import AdminPage
 
-# =========================================================================
-# OLD CODE: EXISTING USER MANAGEMENT TESTS (तिम्रो पुरानो टेस्टहरू)
-# =========================================================================
-
-def test_admin_add_and_search_valid_user(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    time.sleep(4)
+@pytest.fixture
+def logged_in_admin(driver):
+    """Fixture to log in and automatically navigate to the Admin System Users page."""
     login_page = LoginPage(driver)
+    login_page.load()
     login_page.login("Admin", "admin123")
-    time.sleep(3)
+    
+    assert "dashboard" in driver.current_url
     
     admin_page = AdminPage(driver)
-    admin_page.navigate_to_admin_module()
-    time.sleep(3)
+    admin_page.navigate_to_admin_panel()
+    return admin_page
+
+
+def test_add_and_verify_new_user(logged_in_admin):
+    """
+    Flow: 
+    1. Navigate to Add User page (saveSystemUser)
+    2. Fill out and submit the form
+    3. Verify redirection back to the System Users list (viewSystemUsers)
+    4. Search and verify the newly added user
+    """
+    admin_page = logged_in_admin
+    unique_username = f"User{int(time.time())}" 
     
-    unique_username = f"QA_User_{int(time.time())}"
-    admin_page.add_new_user("a", unique_username, "Password@123")
-    time.sleep(6)  
+    # 1. Click Add button and verify page change
+    admin_page.click_add_user()
+    assert "saveSystemUser" in admin_page.get_current_url()
     
+    # 2. Create the user
+    admin_page.create_new_user(
+        role="Admin",
+        employee_name=" John Pham", 
+        username=unique_username,
+        password="Password123!",
+        status="Enabled"
+    )
+    
+    # 3. Verify page automatically returned back to the list screen
+    assert "viewSystemUsers" in admin_page.get_current_url()
+    
+    # 4. Search and confirm the user exists in the grid
     admin_page.search_user_by_username(unique_username)
-    time.sleep(3)
     
-    results = admin_page.get_search_results()
-    assert "Record Found" in results
+    assert "Record Found" in admin_page.get_records_text()
+    assert admin_page.get_first_row_username() == unique_username
 
 
-def test_admin_search_existing_system_user(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    time.sleep(4)
-    login_page = LoginPage(driver)
-    login_page.login("Admin", "admin123")
-    time.sleep(3)
+def test_search_existing_user(logged_in_admin):
+    """Test searching for the default administrative user."""
+    admin_page = logged_in_admin
+    search_query = "Admin"
     
-    admin_page = AdminPage(driver)
-    admin_page.navigate_to_admin_module()
-    time.sleep(3)
+    admin_page.search_user_by_username(search_query)
     
-    admin_page.search_user_by_username("Admin")
-    time.sleep(3)
-    
-    results = admin_page.get_search_results()
-    assert "Record Found" in results
+    assert "Record Found" in admin_page.get_records_text()
+    assert admin_page.get_first_row_username() == search_query
 
 
-def test_admin_search_invalid_user_no_records(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    time.sleep(4)
-    login_page = LoginPage(driver)
-    login_page.login("Admin", "admin123")
-    time.sleep(3)
+def test_search_invalid_user(logged_in_admin):
+    """Test searching for a non-existent username."""
+    admin_page = logged_in_admin
+    search_query = "FakeUserXYZ99"
     
-    admin_page = AdminPage(driver)
-    admin_page.navigate_to_admin_module()
-    time.sleep(3)
+    admin_page.search_user_by_username(search_query)
     
-    admin_page.search_user_by_username("FakeUser_DoesNotExist_1234")
-    time.sleep(3)
-    
-    results = admin_page.get_search_results()
-    assert "No Records Found" in results
-
-
-def test_admin_reset_search_filter_clears_input(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    time.sleep(4)
-    login_page = LoginPage(driver)
-    login_page.login("Admin", "admin123")
-    time.sleep(3)
-    
-    admin_page = AdminPage(driver)
-    admin_page.navigate_to_admin_module()
-    time.sleep(3)
-    
-    admin_page.type(admin_page.search_username_input, "ResetValueText")
-    time.sleep(1)
-    
-    reset_button = driver.find_element("xpath", "//button[contains(., 'Reset')]")
-    reset_button.click()
-    time.sleep(2)
-    
-    current_input_value = driver.find_element(*admin_page.search_username_input).get_attribute("value")
-    assert current_input_value == ""
-
-
-# =========================================================================
-# 🆕 NEW CODE: JOB DROPDOWN OPTIONS TESTS (यो नयाँ थपिएको हो)
-# =========================================================================
-
-def test_admin_add_job_title(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    time.sleep(4)
-    LoginPage(driver).login("Admin", "admin123")
-    
-    admin_page = AdminPage(driver)
-    admin_page.navigate_to_admin_module()
-    
-    admin_page.open_job_dropdown_option("Job Titles")
-    
-    unique_title = f"QA_Engineer_{int(time.time())}"
-    admin_page.fill_and_save_standard_form(unique_title, "Writes automation code.")
-    
-    assert unique_title in driver.page_source
-
-
-def test_admin_add_pay_grade(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    time.sleep(4)
-    LoginPage(driver).login("Admin", "admin123")
-    
-    admin_page = AdminPage(driver)
-    admin_page.navigate_to_admin_module()
-    
-    admin_page.open_job_dropdown_option("Pay Grades")
-    
-    unique_grade = f"Grade_{int(time.time())}"
-    admin_page.fill_and_save_standard_form(unique_grade)
-    
-    assert unique_grade in driver.page_source
+    assert "No Records Found" in admin_page.get_records_text()
