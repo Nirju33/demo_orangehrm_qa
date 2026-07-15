@@ -10,14 +10,16 @@ class AdminPage(BasePage):
     def get_current_url(self):
         return self.driver.current_url
         
-        # --- COMMON LOCATORS
-        
+    # =========================================================================
+    # १. COMMON LOCATORS
+    # =========================================================================
     ADMIN_MENU_BUTTON = (By.XPATH, "//a[span[text()='Admin']]")
     ADD_BUTTON = (By.XPATH, "//button[normalize-space()='Add']")
     SAVE_BUTTON = (By.XPATH, "//button[@type='submit' and contains(., 'Save')]")
     
-    # ---USER MANAGEMENT LOCATORS
-  
+    # =========================================================================
+    # २. USER MANAGEMENT LOCATORS
+    # =========================================================================
     SEARCH_USERNAME_INPUT = (By.XPATH, "//div[label[text()='Username']]/following-sibling::div/input")
     SEARCH_BUTTON = (By.XPATH, "//button[@type='submit' and contains(., 'Search')]")
     RECORDS_FOUND_LABEL = (By.XPATH, "//span[contains(., 'Found')]")
@@ -31,16 +33,35 @@ class AdminPage(BasePage):
     PASSWORD_INPUT = (By.XPATH, "//div[label[text()='Password']]/following-sibling::div/input")
     CONFIRM_PASSWORD_INPUT = (By.XPATH, "//div[label[text()='Confirm Password']]/following-sibling::div/input")
     
-    # --- USER MANAGEMENT ACTIONS
-  
+    # =========================================================================
+    # ३. JOB TITLE LOCATORS
+    # =========================================================================
+    JOB_MENU = (By.XPATH, "//span[contains(text(), 'Job') and @class='oxd-topbar-body-nav-tab-item']")
+    JOB_TITLES_OPTION = (By.XPATH, "//ul[@class='oxd-dropdown-menu']/li/a[text()='Job Titles']")
+    JOB_TITLE_INPUT = (By.XPATH, "//div[label[text()='Job Title']]/following-sibling::div/input")
+    JOB_DESC_TEXTAREA = (By.XPATH, "//div[label[text()='Job Description']]/following-sibling::div/textarea")
+    JOB_NOTE_TEXTAREA = (By.XPATH, "//div[label[text()='Note']]/following-sibling::div/textarea")
+    
+    # =========================================================================
+    # ४. COMMON ACTIONS
+    # =========================================================================
     def navigate_to_admin_panel(self):
         self.click(self.ADMIN_MENU_BUTTON)
         self.wait_for_url_contains("admin/viewSystemUsers")
 
     def click_add_user(self):
+        """साझा Add बटन क्लिक गर्ने फङ्गसन"""
         self.click(self.ADD_BUTTON)
-        self.wait_for_url_contains("admin/saveSystemUser")
 
+    def save_form(self):
+        """साझा Save बटन JavaScript मार्फत सुरक्षित क्लिक गर्ने फङ्गसन"""
+        save_btn = self.find_visible(self.SAVE_BUTTON)
+        self.driver.execute_script("arguments[0].click();", save_btn)
+        time.sleep(1)
+
+    # =========================================================================
+    # ५. USER MANAGEMENT ACTIONS
+    # =========================================================================
     def create_new_user(self, role, employee_name, username, password, status="Enabled"):
         self.click(self.USER_ROLE_DROPDOWN)
         time.sleep(0.5)
@@ -68,8 +89,7 @@ class AdminPage(BasePage):
         self.type(self.CONFIRM_PASSWORD_INPUT, password)
         time.sleep(1)
 
-        save_btn = self.find_visible(self.SAVE_BUTTON)
-        self.driver.execute_script("arguments[0].click();", save_btn)
+        self.save_form()
   
         WebDriverWait(self.driver, 20).until(
             EC.url_contains("admin/viewSystemUsers")
@@ -97,3 +117,26 @@ class AdminPage(BasePage):
 
     def get_first_row_username(self):
         return self.find_visible(self.FIRST_ROW_USERNAME_CELL).text
+    
+    # =========================================================================
+    # ६. JOB TITLE ACTIONS
+    # =========================================================================
+    def navigate_to_job_titles(self):
+        """Job -> Job Titles मा जाने"""
+        self.click(self.JOB_MENU)
+        self.click(self.JOB_TITLES_OPTION)
+        self.wait_for_url_contains("admin/viewJobTitleList")
+
+    def create_new_job_title(self, title, description=None, note=None):
+        """नयाँ Job Title थप्ने र सुरक्षित सेभ गर्ने"""
+        self.type(self.JOB_TITLE_INPUT, title)
+        
+        if description:
+            self.type(self.JOB_DESC_TEXTAREA, description)
+        if note:
+            self.type(self.JOB_NOTE_TEXTAREA, note)
+            
+        self.save_form()
+        WebDriverWait(self.driver, 20).until(
+            EC.url_contains("admin/viewJobTitleList")
+        )
