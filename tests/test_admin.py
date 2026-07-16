@@ -1,11 +1,12 @@
 import pytest
 import time
+import os
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pages.login_page import LoginPage
 from pages.admin_page import AdminPage
 
-# COMMON 
+# COMMON FIXTURE
 @pytest.fixture
 def logged_in_admin(driver):
     login_page = LoginPage(driver)
@@ -19,7 +20,6 @@ def logged_in_admin(driver):
     return admin_page
 
 # USER MANAGEMENT TESTS
-
 def test_add_and_verify_new_user(logged_in_admin):
     admin_page = logged_in_admin
     unique_username = f"User{int(time.time())}" 
@@ -44,15 +44,34 @@ def test_search_existing_user(logged_in_admin):
     assert admin_page.get_first_row_username() == search_query
     
 # JOB TITLE TESTS
-
 def test_add_job_title(logged_in_admin):
     admin_page = logged_in_admin
     admin_page.navigate_to_job_titles()
     admin_page.click_add()
     unique_job = f"QA Automation {int(time.time())}"
-    admin_page.create_new_job_title(
-        title=unique_job,
-        description="Responsible for writing robust automation tests.",
-        note="Created via automated script."
-    )
-    assert "viewJobTitleList" in admin_page.get_current_url()
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    dummy_file_path = os.path.join(current_dir, "temp_job_spec.png")
+    
+    if not os.path.exists(dummy_file_path):
+        with open(dummy_file_path, "wb") as f:
+            f.write(b"") 
+            
+    try:
+     
+        admin_page.create_new_job_title(
+            title=unique_job,
+            description="Responsible for writing robust automation tests.",
+            file_path=dummy_file_path,  
+            note="Created via automated script."
+        )
+        WebDriverWait(admin_page.driver, 15).until(
+            EC.url_contains("viewJobTitleList")
+        )
+        
+        assert "viewJobTitleList" in admin_page.get_current_url()
+        
+    finally:
+        if os.path.exists(dummy_file_path):
+            os.remove(dummy_file_path)
+            
+    time.sleep(5)

@@ -9,14 +9,13 @@ class AdminPage(BasePage):
     
     def get_current_url(self):
         return self.driver.current_url
-        
-    
-    #  LOCATORS 
 
+    # COMMON LOCATORS 
     ADMIN_MENU_BUTTON = (By.XPATH, "//a[span[text()='Admin']]")
     ADD_BUTTON = (By.XPATH, "//button[normalize-space()='Add']")
     SAVE_BUTTON = (By.XPATH, "//button[@type='submit' and contains(., 'Save')]")
-
+    
+    # USER MANAGEMENT LOCATORS
     SEARCH_USERNAME_INPUT = (By.XPATH, "//div[label[text()='Username']]/following-sibling::div/input")
     SEARCH_BUTTON = (By.XPATH, "//button[@type='submit' and contains(., 'Search')]")
     RECORDS_FOUND_LABEL = (By.XPATH, "//span[contains(., 'Found')]")
@@ -29,13 +28,13 @@ class AdminPage(BasePage):
     PASSWORD_INPUT = (By.XPATH, "//div[label[text()='Password']]/following-sibling::div/input")
     CONFIRM_PASSWORD_INPUT = (By.XPATH, "//div[label[text()='Confirm Password']]/following-sibling::div/input")
     
+    # JOB MANAGEMENT LOCATORS
     JOB_MENU = (By.XPATH, "//span[contains(text(), 'Job') and @class='oxd-topbar-body-nav-tab-item']")
     JOB_TITLES_OPTION = (By.XPATH, "//ul[@class='oxd-dropdown-menu']/li/a[text()='Job Titles']")
     JOB_TITLE_INPUT = (By.XPATH, "//div[label[text()='Job Title']]/following-sibling::div/input")
     JOB_DESC_TEXTAREA = (By.XPATH, "//div[label[text()='Job Description']]/following-sibling::div/textarea")
     JOB_NOTE_TEXTAREA = (By.XPATH, "//div[label[text()='Note']]/following-sibling::div/textarea")
-
-    # २. COMMON ACTIONS 
+    JOB_SPECIFICATION_INPUT = (By.XPATH, "//input[@type='file']")
 
     def navigate_to_admin_panel(self):
         self.click(self.ADMIN_MENU_BUTTON)
@@ -46,10 +45,8 @@ class AdminPage(BasePage):
 
     def save_form(self):
         self.click(self.SAVE_BUTTON)
-        time.sleep(1.5) 
+        time.sleep(2) 
         
-    # USER MANAGEMENT ACTIONS
-
     def create_new_user(self, role, employee_name, username, password, status="Enabled"):
         self.click(self.USER_ROLE_DROPDOWN)
         time.sleep(0.5)
@@ -60,8 +57,10 @@ class AdminPage(BasePage):
         el.click()
         el.send_keys(Keys.CONTROL + "a" + Keys.BACKSPACE)
         el.send_keys(employee_name)
-        time.sleep(2.5) 
-
+        
+        dropdown_option = (By.XPATH, "//div[@role='listbox']//span")
+        WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(dropdown_option))
+        
         el.send_keys(Keys.ARROW_DOWN)
         time.sleep(0.5)
         el.send_keys(Keys.ENTER)
@@ -79,7 +78,7 @@ class AdminPage(BasePage):
 
         self.save_form()
   
-        WebDriverWait(self.driver, 20).until(
+        WebDriverWait(self.driver, 25).until(
             EC.url_contains("admin/viewSystemUsers")
         )
 
@@ -101,21 +100,28 @@ class AdminPage(BasePage):
     def get_first_row_username(self):
         return self.find_visible(self.FIRST_ROW_USERNAME_CELL).text
     
-    #  JOB TITLE ACTIONS
     def navigate_to_job_titles(self):
         self.click(self.JOB_MENU)
         self.click(self.JOB_TITLES_OPTION)
         self.wait_for_url_contains("admin/viewJobTitleList")
+    
+    def create_new_job_title(self, title, description, file_path, note):
+       
+        WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located(self.JOB_TITLE_INPUT)
+        ).send_keys(title)
+        WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located(self.JOB_DESC_TEXTAREA)
+        ).send_keys(description)
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located(self.JOB_SPECIFICATION_INPUT)
+        ).send_keys(file_path)
+        WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located(self.JOB_NOTE_TEXTAREA)
+        ).send_keys(note)
 
-    def create_new_job_title(self, title, description=None, note=None):
-        self.type(self.JOB_TITLE_INPUT, title)
-        
-        if description:
-            self.type(self.JOB_DESC_TEXTAREA, description)
-        if note:
-            self.type(self.JOB_NOTE_TEXTAREA, note)
-            
-        self.save_form()
-        WebDriverWait(self.driver, 20).until(
-            EC.url_contains("admin/viewJobTitleList")
+       
+        save_btn = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(self.SAVE_BUTTON)
         )
+        save_btn.click()
