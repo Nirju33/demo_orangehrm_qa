@@ -9,18 +9,14 @@ class AdminPage(BasePage):
     
     def get_current_url(self):
         return self.driver.current_url
-
-    # ==========================================
+    
     # COMMON LOCATORS 
-    # ==========================================
     ADMIN_MENU_BUTTON = (By.XPATH, "//a[span[text()='Admin']]")
     ADD_BUTTON = (By.XPATH, "//button[normalize-space()='Add']")
     SAVE_BUTTON = (By.XPATH, "//button[@type='submit' and contains(., 'Save')]")
     SPINNER = (By.CLASS_NAME, "oxd-loading-spinner")
     
-    # ==========================================
     # USER MANAGEMENT LOCATORS
-    # ==========================================
     SEARCH_USERNAME_INPUT = (By.XPATH, "//div[label[text()='Username']]/following-sibling::div/input")
     SEARCH_BUTTON = (By.XPATH, "//button[@type='submit' and contains(., 'Search')]")
     RECORDS_FOUND_LABEL = (By.XPATH, "//span[contains(., 'Found')]")
@@ -34,9 +30,8 @@ class AdminPage(BasePage):
     PASSWORD_INPUT = (By.XPATH, "//div[label[text()='Password']]/following-sibling::div/input")
     CONFIRM_PASSWORD_INPUT = (By.XPATH, "//div[label[text()='Confirm Password']]/following-sibling::div/input")
     
-    # ==========================================
     # JOB MANAGEMENT & PAY GRADES LOCATORS
-    # ==========================================
+ 
     JOB_MENU = (By.XPATH, "//span[contains(text(), 'Job') and @class='oxd-topbar-body-nav-tab-item']")
     JOB_TITLES_OPTION = (By.XPATH, "//ul[@class='oxd-dropdown-menu']/li/a[text()='Job Titles']")
     PAY_GRADES_OPTION = (By.XPATH, "//ul[@class='oxd-dropdown-menu']/li/a[text()='Pay Grades']")
@@ -48,12 +43,14 @@ class AdminPage(BasePage):
     
     PAY_GRADE_NAME_INPUT = (By.XPATH, "//div[label[text()='Name']]/following-sibling::div/input")
     
-    # CURRENCY BOX LOCATORS (प्रस्ट र बलियो बनाइएको XPATH)
+    # CURRENCY BOX 
     CURRENCY_SECTION_ADD_BUTTON = (By.XPATH, "//h6[text()='Currencies']/following-sibling::button | //h6[text()='Currencies']/..//button[contains(., 'Add')]")
     CURRENCY_DROPDOWN = (By.XPATH, "//label[text()='Currency']/../following-sibling::div//div[@class='oxd-select-text-input']")
     MIN_SALARY_INPUT = (By.XPATH, "//label[text()='Minimum Salary']/../following-sibling::div/input")
     MAX_SALARY_INPUT = (By.XPATH, "//label[text()='Maximum Salary']/../following-sibling::div/input")
     CURRENCY_SAVE_BUTTON = (By.XPATH, "//h6[text()='Add Currency']/following-sibling::form//button[@type='submit']")
+
+    # Methods
 
     def wait_for_spinner_to_disappear(self):
         try:
@@ -159,6 +156,7 @@ class AdminPage(BasePage):
         self.wait_for_spinner_to_disappear()
         
     def add_currency_to_grade(self, currency_name, min_salary, max_salary):
+        # Open currency form
         currency_add_btn = WebDriverWait(self.driver, 15).until(
             EC.element_to_be_clickable(self.CURRENCY_SECTION_ADD_BUTTON)
         )
@@ -167,6 +165,7 @@ class AdminPage(BasePage):
         dropdown_trigger = WebDriverWait(self.driver, 15).until(
             EC.element_to_be_clickable(self.CURRENCY_DROPDOWN)
         )
+        # Select currency
         dropdown_trigger.click()
         currency_option = WebDriverWait(self.driver, 15).until(
             EC.element_to_be_clickable((By.XPATH, f"//div[@role='listbox']//*[contains(text(), '{currency_name}')]"))
@@ -175,11 +174,13 @@ class AdminPage(BasePage):
         min_sal = WebDriverWait(self.driver, 15).until(
             EC.visibility_of_element_located(self.MIN_SALARY_INPUT)
         )
+        # Input salaries
         min_sal.send_keys(min_salary)
         max_sal = WebDriverWait(self.driver, 15).until(
             EC.visibility_of_element_located(self.MAX_SALARY_INPUT)
         )
         max_sal.send_keys(max_salary)
+        # Save currency
         save_button = WebDriverWait(self.driver, 15).until(
             EC.element_to_be_clickable(self.CURRENCY_SAVE_BUTTON)
         )

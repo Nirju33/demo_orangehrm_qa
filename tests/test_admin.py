@@ -15,10 +15,10 @@ def logged_in_admin(driver):
     WebDriverWait(driver, 20).until(
         EC.url_contains("dashboard")
     )
-    
     admin_page = AdminPage(driver)
     admin_page.navigate_to_admin_panel()
     return admin_page
+
 # USER MANAGEMENT TESTS
 def test_add_and_verify_new_user(logged_in_admin):
     admin_page = logged_in_admin
@@ -36,15 +36,15 @@ def test_add_and_verify_new_user(logged_in_admin):
     admin_page.search_user_by_username(unique_username)
     assert "Found" in admin_page.get_records_text()
     assert admin_page.get_first_row_username() == unique_username
-
-
 def test_search_existing_user(logged_in_admin):
     admin_page = logged_in_admin
     search_query = "Admin"
-    
     admin_page.search_user_by_username(search_query)
+    
     assert "Found" in admin_page.get_records_text()
     assert admin_page.get_first_row_username() == search_query
+
+# Job Title Test
 
 def test_add_job_title(logged_in_admin):
     admin_page = logged_in_admin
@@ -54,6 +54,7 @@ def test_add_job_title(logged_in_admin):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     dummy_file_path = os.path.join(current_dir, "temp_job_spec.png")
     
+    # Create temp file
     if not os.path.exists(dummy_file_path):
         with open(dummy_file_path, "wb") as f:
             f.write(b"") 
@@ -71,10 +72,14 @@ def test_add_job_title(logged_in_admin):
         assert "viewJobTitleList" in admin_page.get_current_url()
         
     finally:
+        # Delete temp file
         if os.path.exists(dummy_file_path):
             os.remove(dummy_file_path)
             
     time.sleep(1)
+    
+    # Pay Grade Test
+    
 def test_add_pay_grade_and_currency(logged_in_admin):
     admin_page = logged_in_admin
     admin_page.navigate_to_pay_grades()
