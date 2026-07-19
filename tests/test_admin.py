@@ -6,7 +6,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from pages.login_page import LoginPage
 from pages.admin_page import AdminPage
 
+# ==========================================
 # COMMON FIXTURE
+# ==========================================
 @pytest.fixture
 def logged_in_admin(driver):
     login_page = LoginPage(driver)
@@ -19,7 +21,9 @@ def logged_in_admin(driver):
     admin_page.navigate_to_admin_panel()
     return admin_page
 
+# ==========================================
 # USER MANAGEMENT TESTS
+# ==========================================
 def test_add_and_verify_new_user(logged_in_admin):
     admin_page = logged_in_admin
     unique_username = f"User{int(time.time())}" 
@@ -36,6 +40,7 @@ def test_add_and_verify_new_user(logged_in_admin):
     admin_page.search_user_by_username(unique_username)
     assert "Found" in admin_page.get_records_text()
     assert admin_page.get_first_row_username() == unique_username
+
 def test_search_existing_user(logged_in_admin):
     admin_page = logged_in_admin
     search_query = "Admin"
@@ -44,8 +49,9 @@ def test_search_existing_user(logged_in_admin):
     assert "Found" in admin_page.get_records_text()
     assert admin_page.get_first_row_username() == search_query
 
-# Job Title Test
-
+# ==========================================
+# JOB TITLE TEST
+# ==========================================
 def test_add_job_title(logged_in_admin):
     admin_page = logged_in_admin
     admin_page.navigate_to_job_titles()
@@ -78,8 +84,9 @@ def test_add_job_title(logged_in_admin):
             
     time.sleep(1)
     
-    # Pay Grade Test
-    
+# ==========================================
+# PAY GRADE TEST
+# ==========================================
 def test_add_pay_grade_and_currency(logged_in_admin):
     admin_page = logged_in_admin
     admin_page.navigate_to_pay_grades()
@@ -97,3 +104,14 @@ def test_add_pay_grade_and_currency(logged_in_admin):
     )
     current_url = admin_page.get_current_url()
     assert "payGrade" in current_url or "viewPayGrades" in current_url
+    
+    # Employment status
+
+def test_add_employment_status(logged_in_admin):
+    admin_page = logged_in_admin
+    admin_page.navigate_to_employment_status()
+    admin_page.click_add()
+    status_name = "Internship"
+    admin_page.create_employment_status(status_name)
+    
+    assert "employmentStatus" in admin_page.get_current_url()

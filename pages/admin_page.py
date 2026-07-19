@@ -49,7 +49,11 @@ class AdminPage(BasePage):
     MIN_SALARY_INPUT = (By.XPATH, "//label[text()='Minimum Salary']/../following-sibling::div/input")
     MAX_SALARY_INPUT = (By.XPATH, "//label[text()='Maximum Salary']/../following-sibling::div/input")
     CURRENCY_SAVE_BUTTON = (By.XPATH, "//h6[text()='Add Currency']/following-sibling::form//button[@type='submit']")
-
+    
+    # EMPLOYMENT STATUS LOCATORS
+    EMPLOYMENT_STATUS_OPTION = (By.XPATH, "//ul[@class='oxd-dropdown-menu']/li/a[text()='Employment Status']")
+    EMPLOYMENT_STATUS_NAME_INPUT = (By.XPATH, "//div[label[text()='Name']]/following-sibling::div/input")
+    
     # Methods
 
     def wait_for_spinner_to_disappear(self):
@@ -186,3 +190,22 @@ class AdminPage(BasePage):
         )
         save_button.click()
         self.wait_for_spinner_to_disappear()
+        
+    def navigate_to_employment_status(self):
+        self.click(self.JOB_MENU)
+        self.click(self.EMPLOYMENT_STATUS_OPTION)
+        self.wait_for_url_contains("admin/employmentStatus")
+        self.wait_for_spinner_to_disappear()
+
+    def create_employment_status(self, status_name):
+        el = WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located(self.EMPLOYMENT_STATUS_NAME_INPUT)
+        )
+        el.click()
+        el.send_keys(status_name)
+        save_btn = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(self.SAVE_BUTTON)
+        )
+        save_btn.click()
+        self.wait_for_spinner_to_disappear()
+        time.sleep(1) 
